@@ -15,6 +15,9 @@ public class Wheel {
     private CANCoder angleSensor;
     private int rotateAngle;
 
+    private double[] driveVector;
+    private double[] rotateVector;
+
     public Wheel(String id, double offset, int[] ports)
     {
         this.id = id;
@@ -41,12 +44,17 @@ public class Wheel {
 
     public void drive(double angle, double speed, double twist)
     {
-        //do stuff
+        //do stuff -------------------- idk if drivevector needs to be a class variable like this.blah soo ???
+        driveVector[0] = angle;
+        driveVector[1] = speed;
+        rotateVector[0] = this.rotateAngle;
+        rotateVector[1] = twist;
     }
 
+    //returns the x and y speeds of the wheel in ticks/100ms
     public double[] odometry()
     {
-        //split the motor speed into the x and y velocities of the wheel using trig and return that
+        //split the motor speed into the x and y velocities of the wheel using trig
         double x = Math.sin(toRadians(this.angleSensor.getAbsolutePosition())) * this.driveMotor.getSelectedSensorVelocity();
         double y = Math.cos(toRadians(this.angleSensor.getAbsolutePosition())) * this.driveMotor.getSelectedSensorVelocity();
         double[] result = {x, y};
@@ -91,10 +99,12 @@ public class Wheel {
         }
     }
 
+    //converts degrees to radians
     public static double toRadians(double angle) {
         return (angle * Math.PI) / 180;
     }
 
+    //converts radians to degrees
     public static double toDegrees(double angle) {
         return (angle * 180) / Math.PI;
     }
