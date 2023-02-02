@@ -24,24 +24,32 @@ public class Swerve {
     public Swerve()
     {
         this.wheelFR = new Wheel("FR", 238.7 + 90, ports[3]);
-        // this.wheelFL = new Wheel("FL", 200.1 + 90, ports[2]);
-        // this.wheelBL = new Wheel("BL", 6.4 + 90, ports[1]);
-        // this.wheelBR = new Wheel("BR", 116.7 + 90, ports[0]);
+        this.wheelFL = new Wheel("FL", 200.1 + 90, ports[2]);
+        this.wheelBL = new Wheel("BL", 6.4 + 90, ports[0]);
+        this.wheelBR = new Wheel("BR", 116.7 + 90, ports[1]);
     }
 
     public void swerveDrive(double angle, double speed, double twist)
     {
         if (speed > Map.deadband || Math.abs(twist) > Map.deadband) {
-            speed = speed - Map.deadband;
-            this.wheelFR.drive(angle, speed, twist);
-            // this.wheelFL.drive(angle, speed, twist);
+            if (speed > Map.deadband) {
+                speed = speed - Map.deadband;
+            } else {
+                if (twist < 0) {
+                    twist = twist - Map.deadband;
+                } else {
+                    twist = twist + Map.deadband;
+                }
+            }
+            // this.wheelFR.drive(angle, speed, twist);
+            this.wheelFL.drive(angle, speed, twist);
             // this.wheelBL.drive(angle, speed, twist);
             // this.wheelBR.drive(angle, speed, twist);
         } else {
             this.wheelFR.stop();
-            // this.wheelFL.stop();
-            // this.wheelBL.stop();
-            // this.wheelBR.stop();
+            this.wheelFL.stop();
+            this.wheelBL.stop();
+            this.wheelBR.stop();
         }
     }
 

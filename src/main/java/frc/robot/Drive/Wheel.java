@@ -26,6 +26,7 @@ public class Wheel {
     private double[] shortcut = {0, 0};
 
     private PIDController anglePID;
+    private PIDController speedPID;
 
     private double currentAngle;
     private double currentSpeed;
@@ -37,18 +38,19 @@ public class Wheel {
         this.id = id;
         this.offset = offset;
 
-        //create the hardware objects and pid
+        //create the hardware objects of drive, rotate motors and the CANCoder sensor
         this.driveMotor = new TalonFX(ports[0]);
         this.rotateMotor = new TalonFX(ports[1]);
         this.angleSensor = new CANCoder(ports[2]);
-        this.anglePID = new PIDController(0.0, 0.0, 0.0);
 
         //set defaults for the hardware objects
+        this.driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
         this.driveMotor.setNeutralMode(NeutralMode.Brake);
-        this.driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, 10);
-        this.driveMotor.config_kP(0, 0.01);
         this.rotateMotor.setNeutralMode(NeutralMode.Brake);
         this.angleSensor.setPosition(this.offset);  // don't know if this works lmao ---------------------------------------------- gottem
+
+        this.anglePID = new PIDController(0.0067, 0.015, 0.0001);
+        this.speedPID = new PIDController(0.0000075, 0.0001, 0.0);
 
         //set the rotation angle based on which wheel it is
         switch (this.id) {
@@ -62,35 +64,35 @@ public class Wheel {
     public void drive(double angle, double speed, double twist)
     {
         //get our strafe and rotate vectors from the inputs
-        this.strafeVector[0] = speed;
-        this.strafeVector[1] = angle;
-        this.rotateVector[0] = twist;
-        this.rotateVector[1] = this.rotateAngle;
+        strafeVector[0] = speed;
+        strafeVector[1] = angle;
+        rotateVector[0] = twist;
+        rotateVector[1] = this.rotateAngle;
 
         //get the current and angle and speed of the wheel
-        this.currentAngle = this.angleSensor.getAbsolutePosition();
-        this.currentSpeed = this.driveMotor.getSelectedSensorVelocity();
+        currentAngle = this.angleSensor.getAbsolutePosition();
+        currentSpeed = this.driveMotor.getSelectedSensorVelocity();
 
         //combine the strafe and rotate vectors into a drive vector and find the shortest path
-        this.driveVector = addVectors(this.strafeVector, this.rotateVector);
-        this.shortcut = elOptimal(this.currentAngle, this.driveVector[1]);
+        driveVector = addVectors(strafeVector, rotateVector);
+        shortcut = elOptimal(currentAngle, driveVector[1]);
 
         //set the rotate and drive motors to the calculated velocities
-        this.driveMotor.set(ControlMode.Velocity, speed * 14000);
+        this.driveMotor.set(ControlMode.PercentOutput, this.speedPID.calculate((currentSpeed - (speed * 24000))));
+        currentSpeed = this.driveMotor.getSelectedSensorVelocity();
         this.rotateMotor.set(ControlMode.PercentOutput, this.anglePID.calculate(shortcut[0]));
 
-        SmartDashboard.putNumber("actual speed", this.currentSpeed);
-        SmartDashboard.putNumber("supposed speed", speed * 14000);
-        SmartDashboard.putNumber("shortcut", shortcut[0]);
+        SmartDashboard.putNumber("current speed 1", currentSpeed);
+        // SmartDashboard.putNumber("calculated speed 2", (speed * 2.5));
 
         //calculate the x and y speeds of the wheel
-        odometry(this.currentAngle, this.currentSpeed);
+        odometry(currentAngle, currentSpeed);
     }
 
     //make sure the motors stop moving
     public void stop() {
-        this.driveMotor.set(ControlMode.Velocity, 0);
-        this.rotateMotor.set(ControlMode.Velocity, 0);
+        this.driveMotor.set(ControlMode.PercentOutput, 0);
+        this.rotateMotor.set(ControlMode.PercentOutput, 0);
     }
 
     //returns the x and y speeds of the wheel in ticks/100ms
