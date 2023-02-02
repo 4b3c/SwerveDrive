@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
     joystickAngle = 180 + (Math.atan2(y, -x) / (Math.PI) * 180);
     joystickMag = Math.sqrt(x * x + y * y);
 
-    Map.swerve.swerveDrive(joystickMag, joystickAngle, twist);
+    Map.swerve.swerveDrive(joystickAngle, joystickMag, twist);
   }
 
   @Override

@@ -31,7 +31,8 @@ public class Swerve {
 
     public void swerveDrive(double angle, double speed, double twist)
     {
-        if (speed > Map.deadband || twist > Map.deadband) {
+        if (speed > Map.deadband || Math.abs(twist) > Map.deadband) {
+            speed = speed - Map.deadband;
             this.wheelFR.drive(angle, speed, twist);
             // this.wheelFL.drive(angle, speed, twist);
             // this.wheelBL.drive(angle, speed, twist);

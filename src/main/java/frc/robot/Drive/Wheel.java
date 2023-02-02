@@ -3,11 +3,13 @@
 package frc.robot.Drive;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Wheel {
     
@@ -24,7 +26,6 @@ public class Wheel {
     private double[] shortcut = {0, 0};
 
     private PIDController anglePID;
-    private PIDController speedPID;
 
     private double currentAngle;
     private double currentSpeed;
@@ -36,18 +37,18 @@ public class Wheel {
         this.id = id;
         this.offset = offset;
 
-        //create the hardware objects of drive, rotate motors and the CANCoder sensor
+        //create the hardware objects and pid
         this.driveMotor = new TalonFX(ports[0]);
         this.rotateMotor = new TalonFX(ports[1]);
         this.angleSensor = new CANCoder(ports[2]);
+        this.anglePID = new PIDController(0.0, 0.0, 0.0);
 
         //set defaults for the hardware objects
         this.driveMotor.setNeutralMode(NeutralMode.Brake);
+        this.driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, 10);
+        this.driveMotor.config_kP(0, 0.01);
         this.rotateMotor.setNeutralMode(NeutralMode.Brake);
         this.angleSensor.setPosition(this.offset);  // don't know if this works lmao ---------------------------------------------- gottem
-
-        this.anglePID = new PIDController(0.0, 0.0, 0.0);
-        this.speedPID = new PIDController(0.0, 0.0, 0.0);
 
         //set the rotation angle based on which wheel it is
         switch (this.id) {
@@ -61,25 +62,29 @@ public class Wheel {
     public void drive(double angle, double speed, double twist)
     {
         //get our strafe and rotate vectors from the inputs
-        strafeVector[0] = angle;
-        strafeVector[1] = speed;
-        rotateVector[0] = this.rotateAngle;
-        rotateVector[1] = twist;
+        this.strafeVector[0] = speed;
+        this.strafeVector[1] = angle;
+        this.rotateVector[0] = twist;
+        this.rotateVector[1] = this.rotateAngle;
 
         //get the current and angle and speed of the wheel
-        currentAngle = this.angleSensor.getAbsolutePosition();
-        currentSpeed = this.driveMotor.getSelectedSensorVelocity();
+        this.currentAngle = this.angleSensor.getAbsolutePosition();
+        this.currentSpeed = this.driveMotor.getSelectedSensorVelocity();
 
         //combine the strafe and rotate vectors into a drive vector and find the shortest path
-        driveVector = addVectors(strafeVector, rotateVector);
-        shortcut = elOptimal(currentAngle, driveVector[1]);
+        this.driveVector = addVectors(this.strafeVector, this.rotateVector);
+        this.shortcut = elOptimal(this.currentAngle, this.driveVector[1]);
 
         //set the rotate and drive motors to the calculated velocities
-        this.driveMotor.set(ControlMode.Velocity, this.speedPID.calculate(currentSpeed, driveVector[0] * shortcut[1]));
-        this.rotateMotor.set(ControlMode.Velocity, this.anglePID.calculate(shortcut[0]));
+        this.driveMotor.set(ControlMode.Velocity, speed * 14000);
+        this.rotateMotor.set(ControlMode.PercentOutput, this.anglePID.calculate(shortcut[0]));
+
+        SmartDashboard.putNumber("actual speed", this.currentSpeed);
+        SmartDashboard.putNumber("supposed speed", speed * 14000);
+        SmartDashboard.putNumber("shortcut", shortcut[0]);
 
         //calculate the x and y speeds of the wheel
-        odometry(currentAngle, currentSpeed);
+        odometry(this.currentAngle, this.currentSpeed);
     }
 
     //make sure the motors stop moving
