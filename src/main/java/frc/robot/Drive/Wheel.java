@@ -47,17 +47,16 @@ public class Wheel {
         this.driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
         this.driveMotor.setNeutralMode(NeutralMode.Brake);
         this.rotateMotor.setNeutralMode(NeutralMode.Brake);
-        this.angleSensor.setPosition(this.offset);  // don't know if this works lmao ---------------------------------------------- gottem
 
         this.anglePID = new PIDController(0.0067, 0.015, 0.0001);
         this.speedPID = new PIDController(0.0000075, 0.0001, 0.0);
 
         //set the rotation angle based on which wheel it is
         switch (this.id) {
-            case "FR": this.rotateAngle = 135;
-            case "FL": this.rotateAngle = 225;
-            case "BL": this.rotateAngle = 315;
-            case "BR": this.rotateAngle = 45;
+            case "FR": this.rotateAngle = 135; break;
+            case "FL": this.rotateAngle = 225; break;
+            case "BL": this.rotateAngle = 315; break;
+            case "BR": this.rotateAngle = 045; break;
         }
     }
 
@@ -66,27 +65,31 @@ public class Wheel {
         //get our strafe and rotate vectors from the inputs
         strafeVector[0] = speed;
         strafeVector[1] = angle;
-        rotateVector[0] = twist;
-        rotateVector[1] = this.rotateAngle;
+        this.rotateVector[0] = twist;
+        this.rotateVector[1] = this.rotateAngle;
 
         //get the current and angle and speed of the wheel
-        currentAngle = this.angleSensor.getAbsolutePosition();
-        currentSpeed = this.driveMotor.getSelectedSensorVelocity();
+        this.currentAngle = this.angleSensor.getAbsolutePosition() - this.offset;
+        this.currentSpeed = this.driveMotor.getSelectedSensorVelocity();
 
         //combine the strafe and rotate vectors into a drive vector and find the shortest path
-        driveVector = addVectors(strafeVector, rotateVector);
-        shortcut = elOptimal(currentAngle, driveVector[1]);
+        this.driveVector = addVectors(strafeVector, this.rotateVector);
+        this.shortcut = elOptimal(this.currentAngle, this.driveVector[1]);
 
         //set the rotate and drive motors to the calculated velocities
-        this.driveMotor.set(ControlMode.PercentOutput, this.speedPID.calculate((currentSpeed - (speed * 24000))));
-        currentSpeed = this.driveMotor.getSelectedSensorVelocity();
-        this.rotateMotor.set(ControlMode.PercentOutput, this.anglePID.calculate(shortcut[0]));
+        if (this.id.equals("BL")) {
+            this.driveMotor.set(ControlMode.PercentOutput, this.shortcut[1] * -this.speedPID.calculate((Math.abs(this.currentSpeed) - (this.driveVector[0] * 24000))));
+        } else {
+            this.driveMotor.set(ControlMode.PercentOutput, this.shortcut[1] * this.speedPID.calculate((Math.abs(this.currentSpeed) - (this.driveVector[0] * 24000))));
+        }
+        // this.driveMotor.set(ControlMode.PercentOutput, this.speedPID.calculate((currentSpeed - (speed * 24000))));
+        this.rotateMotor.set(ControlMode.PercentOutput, this.anglePID.calculate(this.shortcut[0]));
 
-        SmartDashboard.putNumber("current speed 1", currentSpeed);
-        // SmartDashboard.putNumber("calculated speed 2", (speed * 2.5));
+        SmartDashboard.putNumber("current speed " + this.id, this.currentSpeed);
+        SmartDashboard.putNumber("current rotate " + this.id, this.rotateAngle);
 
         //calculate the x and y speeds of the wheel
-        odometry(currentAngle, currentSpeed);
+        odometry(this.currentAngle, this.currentSpeed);
     }
 
     //make sure the motors stop moving

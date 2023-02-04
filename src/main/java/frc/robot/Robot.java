@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-
 import edu.wpi.first.wpilibj.TimedRobot;
 
 /**
@@ -48,7 +47,8 @@ public class Robot extends TimedRobot {
     joystickAngle = 180 + (Math.atan2(y, -x) / (Math.PI) * 180);
     joystickMag = Math.sqrt(x * x + y * y);
 
-    Map.swerve.swerveDrive(90, joystickMag, 0);
+    Map.swerve.swerveDrive(joystickAngle, joystickMag, twist);
+
   }
 
   @Override
