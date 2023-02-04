@@ -5,7 +5,7 @@ import frc.robot.Map;
 
 public class Swerve {
 
-    private int[][] ports = {{1, 5, 9}, {2, 6, 10}, {3, 7, 11}, {4, 8, 12}};
+    private int[][] ports = {{0, 5, 9}, {2, 6, 10}, {3, 7, 11}, {4, 8, 12}};
     private double[][] sumXY = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
     private double sumX;
     private double sumY;
@@ -23,14 +23,15 @@ public class Swerve {
     //offset, module numbers, id's for rotate and for drive, rotation, drive, and angle
     public Swerve()
     {
-        this.wheelFR = new Wheel("FR", 328.7, ports[3]);
-        this.wheelFL = new Wheel("FL", 295.1, ports[2]);
+        this.wheelFR = new Wheel("FR", 148.7, ports[3]);
+        this.wheelFL = new Wheel("FL", 115.1, ports[2]);
         this.wheelBL = new Wheel("BL", 34.4, ports[0]);
         this.wheelBR = new Wheel("BR", 107.7, ports[1]);
     }
 
     public void swerveDrive(double angle, double speed, double twist)
     {
+        angle = angle + Map.initialAngle - Map.gyro.getYaw();
         if (speed > Map.deadband || Math.abs(twist) > Map.deadband) {
             if (speed > Map.deadband) {
                 speed = speed - Map.deadband;

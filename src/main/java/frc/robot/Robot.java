@@ -25,7 +25,9 @@ public class Robot extends TimedRobot {
   double joystickMag;
 
   @Override
-  public void robotInit() {}
+  public void robotInit() {
+    Map.initialAngle = Map.gyro.getYaw();
+  }
 
   @Override
   public void robotPeriodic() {}
@@ -48,6 +50,10 @@ public class Robot extends TimedRobot {
     joystickMag = Math.sqrt(x * x + y * y);
 
     Map.swerve.swerveDrive(joystickAngle, joystickMag, twist);
+
+    if (Map.driver.getRawButton(6)) {
+      Map.initialAngle = Map.gyro.getYaw();
+    }
 
   }
 

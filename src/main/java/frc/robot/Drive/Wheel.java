@@ -3,7 +3,6 @@
 package frc.robot.Drive;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
@@ -28,9 +27,11 @@ public class Wheel {
     private PIDController anglePID;
     private PIDController speedPID;
 
-    private double currentAngle;
-    private double currentSpeed;
+    public double currentAngle;
+    public double currentSpeed;
     public double[] changeInXY = {0, 0};
+
+    private double calculated;
 
     //wheel object initiallizer takes in an id, the wheel's offset and a int array of the drive, rotate motors and CANCoder ports
     public Wheel(String id, double offset, int[] ports)
@@ -44,19 +45,19 @@ public class Wheel {
         this.angleSensor = new CANCoder(ports[2]);
 
         //set defaults for the hardware objects
-        this.driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
         this.driveMotor.setNeutralMode(NeutralMode.Brake);
         this.rotateMotor.setNeutralMode(NeutralMode.Brake);
 
+        //initialize PIDs
         this.anglePID = new PIDController(0.0067, 0.015, 0.0001);
         this.speedPID = new PIDController(0.0000075, 0.0001, 0.0);
 
         //set the rotation angle based on which wheel it is
         switch (this.id) {
-            case "FR": this.rotateAngle = 135; break;
-            case "FL": this.rotateAngle = 225; break;
-            case "BL": this.rotateAngle = 315; break;
-            case "BR": this.rotateAngle = 045; break;
+            case "FR": this.rotateAngle = 315; break;
+            case "FL": this.rotateAngle = 45; break;
+            case "BL": this.rotateAngle = 135; break;
+            case "BR": this.rotateAngle = 225; break;
         }
     }
 
@@ -77,33 +78,40 @@ public class Wheel {
         this.shortcut = elOptimal(this.currentAngle, this.driveVector[1]);
 
         //set the rotate and drive motors to the calculated velocities
-        if (this.id.equals("BL")) {
-            this.driveMotor.set(ControlMode.PercentOutput, this.shortcut[1] * -this.speedPID.calculate((Math.abs(this.currentSpeed) - (this.driveVector[0] * 24000))));
+        if (this.id.equals("FR") || this.id.equals("FL")) {
+            this.driveMotor.set(ControlMode.PercentOutput, this.shortcut[1] * -this.speedPID.calculate(Math.abs(this.currentSpeed) - (this.driveVector[0] * 24000)));
         } else {
-            this.driveMotor.set(ControlMode.PercentOutput, this.shortcut[1] * this.speedPID.calculate((Math.abs(this.currentSpeed) - (this.driveVector[0] * 24000))));
+            this.driveMotor.set(ControlMode.PercentOutput, this.shortcut[1] * this.speedPID.calculate(Math.abs(this.currentSpeed) - (this.driveVector[0] * 24000)));
         }
-        // this.driveMotor.set(ControlMode.PercentOutput, this.speedPID.calculate((currentSpeed - (speed * 24000))));
+        // this.driveMotor.set(ControlMode.PercentOutput, this.speedPID.calculate((this.currentSpeed - (driveVector[0] * 24000))));
         this.rotateMotor.set(ControlMode.PercentOutput, this.anglePID.calculate(this.shortcut[0]));
 
         SmartDashboard.putNumber("current speed " + this.id, this.currentSpeed);
-        SmartDashboard.putNumber("current rotate " + this.id, this.rotateAngle);
+        calculated = 1;
 
         //calculate the x and y speeds of the wheel
-        odometry(this.currentAngle, this.currentSpeed);
+        odometry();
     }
 
     //make sure the motors stop moving
-    public void stop() {
+    public void stop()
+    {
+        //set both motors to 0 percent power
         this.driveMotor.set(ControlMode.PercentOutput, 0);
         this.rotateMotor.set(ControlMode.PercentOutput, 0);
+
+        //makes the PID know it's zero so it doesnt go fast after stopping and going slow
+        if (Math.abs(calculated) > 0.01) {
+            calculated = this.speedPID.calculate(calculated * 24000);
+        }
     }
 
     //returns the x and y speeds of the wheel in ticks/100ms
-    public void odometry(double currentAngle, double currentSpeed)
+    public void odometry()
     {
         //split the motor speed into the x and y velocities of the wheel using trig
-        this.changeInXY[0] = Math.sin(toRadians(currentAngle)) * currentSpeed;
-        this.changeInXY[1] = Math.cos(toRadians(currentAngle)) * currentSpeed;
+        this.changeInXY[0] = Math.sin(toRadians(this.currentAngle)) * this.currentSpeed;
+        this.changeInXY[1] = Math.cos(toRadians(this.currentAngle)) * this.currentSpeed;
  
     }
 
@@ -145,7 +153,8 @@ public class Wheel {
     }
 
     //Adds two vectors {magnitude, angle}
-    public static double[] addVectors(double[] arr1, double[] arr2) {
+    public double[] addVectors(double[] arr1, double[] arr2)
+    {
         double magnitudeOne = arr1[0];
         double angleOne = arr1[1];
 
@@ -166,12 +175,14 @@ public class Wheel {
     }
 
     //converts degrees to radians
-    public static double toRadians(double angle) {
+    public double toRadians(double angle)
+    {
         return (angle * Math.PI) / 180;
     }
 
     //converts radians to degrees
-    public static double toDegrees(double angle) {
+    public double toDegrees(double angle)
+    {
         return (angle * 180) / Math.PI;
     }
 
