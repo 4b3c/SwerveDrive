@@ -33,13 +33,17 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {}
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    Map.elapsedTime = 0;
+  }
 
   @Override
   public void autonomousPeriodic() {}
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    Map.elapsedTime = 0;
+  }
 
   @Override
   public void teleopPeriodic() {
@@ -50,9 +54,14 @@ public class Robot extends TimedRobot {
     joystickMag = Math.sqrt(x * x + y * y);
 
     Map.swerve.swerveDrive(joystickAngle, joystickMag, twist);
+    Map.swerve.odometry();
 
     if (Map.driver.getRawButton(6)) {
       Map.initialAngle = Map.gyro.getYaw();
+    }
+    if (Map.driver.getRawButton(3)) {
+      Map.swerve.xPos = 0;
+      Map.swerve.yPos = 0;
     }
 
   }

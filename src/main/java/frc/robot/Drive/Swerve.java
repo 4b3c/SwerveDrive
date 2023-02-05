@@ -1,6 +1,7 @@
 package frc.robot.Drive;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Map;
 
 public class Swerve {
@@ -16,7 +17,6 @@ public class Swerve {
     private Wheel wheelBR;
 
     private double cycleTime;
-    private double elapsedTime;
     public double xPos;
     public double yPos;
 
@@ -45,7 +45,6 @@ public class Swerve {
             } else {
                 twist = 0;
             }
-    
             
             this.wheelFR.drive(angle, speed, twist);
             this.wheelFL.drive(angle, speed, twist);
@@ -69,9 +68,12 @@ public class Swerve {
         sumX = (sumXY[0][0] + sumXY[1][0] + sumXY[2][0] + sumXY[3][0]) / 4;
         sumY = (sumXY[0][1] + sumXY[1][1] + sumXY[2][1] + sumXY[3][1]) / 4;
 
-        cycleTime = Timer.getFPGATimestamp() - elapsedTime;
-        elapsedTime += cycleTime;
+        cycleTime = Timer.getFPGATimestamp() - Map.elapsedTime;
+        Map.elapsedTime += cycleTime;
         this.xPos += sumX * cycleTime;
         this.yPos += sumY * cycleTime;
+
+        SmartDashboard.putNumber("x pos", this.xPos);
+        SmartDashboard.putNumber("y pos", this.yPos);
     }
 }

@@ -104,14 +104,24 @@ public class Wheel {
         if (Math.abs(calculated) > 0.01) {
             calculated = this.speedPID.calculate(calculated * 24000);
         }
+
+        //take speed so odometry doesn't act stupid
+        this.currentSpeed = this.driveMotor.getSelectedSensorVelocity();
+        odometry();
+
     }
 
-    //returns the x and y speeds of the wheel in ticks/100ms
+    //calculates x and y speeds of the wheel in ticks/100ms
     public void odometry()
     {
         //split the motor speed into the x and y velocities of the wheel using trig
-        this.changeInXY[0] = Math.sin(toRadians(this.currentAngle)) * this.currentSpeed;
-        this.changeInXY[1] = Math.cos(toRadians(this.currentAngle)) * this.currentSpeed;
+        if (this.id.equals("FR") || this.id.equals("FL")) {
+            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle)) * -this.currentSpeed;
+            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle)) * -this.currentSpeed;
+        } else {
+            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle)) * this.currentSpeed;
+            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle)) * this.currentSpeed;
+        }
  
     }
 

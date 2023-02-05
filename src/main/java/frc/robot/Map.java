@@ -13,4 +13,6 @@ public class Map {
     public static double initialAngle;
     
     public static double deadband = 0.1;
+
+    public static double elapsedTime;
 }
