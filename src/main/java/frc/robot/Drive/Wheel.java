@@ -9,6 +9,7 @@ import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Map;
 
 public class Wheel {
     
@@ -50,7 +51,7 @@ public class Wheel {
 
         //initialize PIDs
         this.anglePID = new PIDController(0.0067, 0.015, 0.0001);
-        this.speedPID = new PIDController(0.0000075, 0.0001, 0.0);
+        this.speedPID = new PIDController(0.0000087, 0.0001, 0.0);
 
         //set the rotation angle based on which wheel it is
         switch (this.id) {
@@ -90,7 +91,7 @@ public class Wheel {
         calculated = 1;
 
         //calculate the x and y speeds of the wheel
-        odometry();
+        odometry(Map.initialAngle - Map.gyro.getYaw());
     }
 
     //make sure the motors stop moving
@@ -106,22 +107,27 @@ public class Wheel {
         }
 
         //take speed so odometry doesn't act stupid
+        this.currentAngle = this.angleSensor.getAbsolutePosition() - this.offset;
         this.currentSpeed = this.driveMotor.getSelectedSensorVelocity();
-        odometry();
+        odometry(Map.initialAngle - Map.gyro.getYaw());
 
     }
 
     //calculates x and y speeds of the wheel in ticks/100ms
-    public void odometry()
+    public void odometry(double robotAngle)
     {
         //split the motor speed into the x and y velocities of the wheel using trig
         if (this.id.equals("FR") || this.id.equals("FL")) {
-            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle)) * -this.currentSpeed;
-            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle)) * -this.currentSpeed;
+            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle + 180 - robotAngle)) * this.currentSpeed;
+            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle + 180 - robotAngle)) * this.currentSpeed;
         } else {
-            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle)) * this.currentSpeed;
-            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle)) * this.currentSpeed;
+            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle - robotAngle)) * this.currentSpeed;
+            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle - robotAngle)) * this.currentSpeed;
         }
+
+        SmartDashboard.putNumber("angle" + this.id, this.currentAngle);
+        SmartDashboard.putNumber("angle supposed " + this.id, this.driveVector[1]);
+        
  
     }
 

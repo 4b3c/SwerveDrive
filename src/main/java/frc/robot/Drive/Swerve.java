@@ -35,6 +35,8 @@ public class Swerve {
         if (speed > Map.deadband || Math.abs(twist) > Map.deadband) {
             if (speed > Map.deadband) {
                 speed = speed - Map.deadband;
+            } else {
+                speed = 0;
             }
             if (Math.abs(twist) > Map.deadband) {
                 if (twist < 0) {
@@ -76,4 +78,5 @@ public class Swerve {
         SmartDashboard.putNumber("x pos", this.xPos);
         SmartDashboard.putNumber("y pos", this.yPos);
     }
+
 }

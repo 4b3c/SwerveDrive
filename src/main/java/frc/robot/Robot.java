@@ -53,7 +53,7 @@ public class Robot extends TimedRobot {
     joystickAngle = 180 + (Math.atan2(y, -x) / (Math.PI) * 180);
     joystickMag = Math.sqrt(x * x + y * y);
 
-    Map.swerve.swerveDrive(joystickAngle, joystickMag, twist);
+    Map.swerve.swerveDrive(Math.round(joystickAngle / 45) * 45, joystickMag, twist);
     Map.swerve.odometry();
 
     if (Map.driver.getRawButton(6)) {
