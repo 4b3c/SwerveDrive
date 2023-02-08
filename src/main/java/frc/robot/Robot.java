@@ -5,6 +5,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Drive.Auto;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -53,9 +55,13 @@ public class Robot extends TimedRobot {
     joystickAngle = 180 + (Math.atan2(y, -x) / (Math.PI) * 180);
     joystickMag = Math.sqrt(x * x + y * y);
 
-    Map.swerve.swerveDrive(Math.round(joystickAngle / 45) * 45, joystickMag, twist);
-    Map.swerve.odometry();
-
+    if (Map.driver.getPOV() != -1) {
+      Auto.returnToOrigin();
+    } else {
+      Map.swerve.swerveDrive(joystickAngle, joystickMag, twist);
+      Map.swerve.odometry();
+      SmartDashboard.putBoolean("Auto", false);
+    }
     if (Map.driver.getRawButton(6)) {
       Map.initialAngle = Map.gyro.getYaw();
     }

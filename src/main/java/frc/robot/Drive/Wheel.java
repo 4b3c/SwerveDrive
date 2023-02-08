@@ -197,7 +197,7 @@ public class Wheel {
     }
 
     //converts radians to degrees
-    public double toDegrees(double angle)
+    public static double toDegrees(double angle)
     {
         return (angle * 180) / Math.PI;
     }
