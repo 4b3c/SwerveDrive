@@ -6,7 +6,7 @@ import frc.robot.Map;
 
 public class Auto {
 
-    public static PIDController distAutoPID = new PIDController(0.01, 0.0001, 0.0);;
+    public static PIDController distAutoPID = new PIDController(0.015, 0.0001, 0.0);;
     public static double speedAuto;
     public static double angleAuto;
     public static double distAuto;
