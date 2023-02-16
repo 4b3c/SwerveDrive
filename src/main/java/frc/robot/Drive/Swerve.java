@@ -19,6 +19,7 @@ public class Swerve {
     private double cycleTime;
     public double xPos;
     public double yPos;
+    public double[] coords = {0, 0};
 
     //offset, module numbers, id's for rotate and for drive, rotation, drive, and angle
     public Swerve()
@@ -27,12 +28,11 @@ public class Swerve {
         this.wheelFL = new Wheel("FL", 115.1, ports[1]);
         this.wheelBL = new Wheel("BL", 34.4, ports[2]);
         this.wheelBR = new Wheel("BR", 107.7, ports[3]);
-
     }
 
     public void swerveDrive(double angle, double speed, double twist)
     {
-        angle = angle + Map.initialAngle - Map.gyro.getYaw();
+        SmartDashboard.putNumber("angle", angle);
         if (speed > Map.deadband || Math.abs(twist) > Map.deadband) {
             if (speed > Map.deadband) {
                 speed = speed - Map.deadband;
@@ -61,7 +61,7 @@ public class Swerve {
         }
     }
 
-    public void odometry()
+    public void odometry(double robotAngle)
     {
         sumXY[0] = this.wheelFR.changeInXY;
         sumXY[1] = this.wheelFL.changeInXY;
@@ -76,9 +76,13 @@ public class Swerve {
         this.xPos += sumX * cycleTime;
         this.yPos += sumY * cycleTime;
 
-        SmartDashboard.putNumber("x pos", this.xPos);
-        SmartDashboard.putNumber("y pos", this.yPos);
+        this.coords[0] = (Math.sin(Wheel.toRadians(robotAngle + 90)) + Math.cos(Wheel.toRadians(robotAngle + 90)) - 1) * 500;
+        this.coords[1] = (Math.sin(Wheel.toRadians(robotAngle)) + Math.cos(Wheel.toRadians(robotAngle)) - 1) * 525;
+
+        SmartDashboard.putNumber("x pos", this.xPos + coords[0]);
+        SmartDashboard.putNumber("y pos", this.yPos - coords[1]);
+
+        SmartDashboard.putNumber("x change", coords[0]);
+        SmartDashboard.putNumber("y change", coords[1]);
     }
-
-
 }

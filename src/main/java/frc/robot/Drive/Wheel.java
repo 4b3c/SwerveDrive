@@ -51,7 +51,7 @@ public class Wheel {
 
         //initialize PIDs
         this.anglePID = new PIDController(0.0067, 0.015, 0.0001);
-        this.speedPID = new PIDController(0.0000087, 0.0001, 0.0);
+        this.speedPID = new PIDController(0.0000075, 0.0001, 0.0);
 
         //set the rotation angle based on which wheel it is
         switch (this.id) {
@@ -118,16 +118,12 @@ public class Wheel {
     {
         //split the motor speed into the x and y velocities of the wheel using trig
         if (this.id.equals("FR") || this.id.equals("FL")) {
-            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle + 180 - robotAngle)) * this.currentSpeed;
-            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle + 180 - robotAngle)) * this.currentSpeed;
+            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle - robotAngle)) * -this.currentSpeed;
+            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle - robotAngle)) * -this.currentSpeed;
         } else {
-            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle - robotAngle)) * this.currentSpeed;
-            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle - robotAngle)) * this.currentSpeed;
+            this.changeInXY[0] = Math.cos(toRadians(this.currentAngle - robotAngle)) * -this.currentSpeed;
+            this.changeInXY[1] = Math.sin(toRadians(this.currentAngle - robotAngle)) * -this.currentSpeed;
         }
-
-        SmartDashboard.putNumber("angle" + this.id, this.currentAngle);
-        SmartDashboard.putNumber("angle supposed " + this.id, this.driveVector[1]);
-        
  
     }
 
@@ -169,7 +165,7 @@ public class Wheel {
     }
 
     //Adds two vectors {magnitude, angle}
-    public double[] addVectors(double[] arr1, double[] arr2)
+    public static double[] addVectors(double[] arr1, double[] arr2)
     {
         double magnitudeOne = arr1[0];
         double angleOne = arr1[1];
@@ -191,7 +187,7 @@ public class Wheel {
     }
 
     //converts degrees to radians
-    public double toRadians(double angle)
+    public static double toRadians(double angle)
     {
         return (angle * Math.PI) / 180;
     }
