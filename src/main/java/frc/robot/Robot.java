@@ -82,8 +82,6 @@ public class Robot extends TimedRobot {
       ShortTestPaths.onBoard = false;
     }
     
-    // Rollers.roll(Map.driver.getRawAxis(2), Map.driver.getRawAxis(3));
-
   }
 
   @Override
